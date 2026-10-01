@@ -218,7 +218,3 @@ node frontend/src/format.js
 ```
 
 It prints nothing when the checks pass.
-
-## Time spent
-
-Fill this in before you submit.

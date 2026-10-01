@@ -74,7 +74,10 @@ def main():
         cwd=ROOT / "backend",
         env=env,
     )
-    print("UI http://127.0.0.1:8080   API http://127.0.0.1:8000", flush=True)
+    print(
+        "UI http://127.0.0.1:8080   API http://127.0.0.1:8000   metrics http://127.0.0.1:8000/metrics",
+        flush=True,
+    )
     try:
         ThreadingHTTPServer(("127.0.0.1", 8080), Handler).serve_forever()
     finally:

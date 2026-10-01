@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from pathlib import Path
 
 from fastapi import APIRouter
@@ -7,6 +8,7 @@ from fastapi.responses import StreamingResponse
 
 from app.models.meeting import FieldValue as FieldRecord
 from app.models.meeting import MeetingRecord
+from app.observe import note_reconcile, note_source_change
 from app.schemas.meeting import FieldValue, Meeting, MeetingList
 from app.services.ingestion import source_token
 from app.services.reconciliation import reconcile
@@ -23,7 +25,14 @@ def data_dir() -> Path:
 
 @router.get("/api/meetings", response_model=MeetingList)
 def list_meetings() -> MeetingList:
-    meetings = [_meeting(record) for record in reconcile(data_dir())]
+    started = time.perf_counter()
+    records = reconcile(data_dir())
+    meetings = [_meeting(record) for record in records]
+    note_reconcile(
+        meetings=len(meetings),
+        conflicts=sum(record.conflict_count > 0 for record in records),
+        seconds=time.perf_counter() - started,
+    )
     return MeetingList(meetings=meetings)
 
 
@@ -46,6 +55,7 @@ async def _file_events():
         if token is None or token == seen:
             continue
         seen = token
+        note_source_change()
         yield "data: changed\n\n"
 
 

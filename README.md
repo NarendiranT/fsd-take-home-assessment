@@ -74,6 +74,7 @@ data/*.json
 ```
 backend/app
   main.py                     FastAPI app, CORS for GET
+  observe.py                  JSON logs, /health, /metrics
   api/meetings.py             /api/meetings and /api/events
   services/ingestion.py       read the two files
   services/normalization.py   one record shape
@@ -120,6 +121,8 @@ Swagger is on the API port. FastAPI builds it from the routes.
 | --- | --- |
 | Meeting list | [http://127.0.0.1:8000/api/meetings](http://127.0.0.1:8000/api/meetings) |
 | File-change stream | [http://127.0.0.1:8000/api/events](http://127.0.0.1:8000/api/events) |
+| Health | [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health) |
+| Metrics | [http://127.0.0.1:8000/metrics](http://127.0.0.1:8000/metrics) |
 | Swagger UI | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) |
 | ReDoc | [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc) |
 | OpenAPI document | [http://127.0.0.1:8000/openapi.json](http://127.0.0.1:8000/openapi.json) |
@@ -127,6 +130,14 @@ Swagger is on the API port. FastAPI builds it from the routes.
 `GET /api/meetings` returns `{ "meetings": [ ... ] }`. Each meeting has `id`, `source` (`crm`, `calendar`, or `both`), `conflict_count`, and these fields: `title`, `when`, `who`, `location`, `status`, `notes`, `ids`. Each field has `crm`, `calendar`, and `conflict`.
 
 `GET /api/events` stays open. It is `text/event-stream`, not JSON. Swagger will show the route. A browser tab or `curl -N` is the easier way to watch it.
+
+## Observability
+
+Logs are one JSON object per line on the API process stdout. A request line has `request_id`, `method`, `path`, `status`, and `duration_ms`. The response header `x-request-id` is the same id. A reconcile line has `meetings`, `conflicts`, and `duration_ms`. A `source_changed` line is written when the event stream notices a valid edit to either data file. `/health` and `/metrics` are not logged.
+
+`GET /health` returns `{"status": "ok"}`. Docker uses that as the backend healthcheck.
+
+`GET /metrics` is Prometheus text, counted in this process. It reports request totals, how many times the list was built, the size and conflict count of the latest reconcile, how long that reconcile took, and how many file changes the stream has noticed. Scrape port 8000. The page on port 8080 does not proxy `/metrics`.
 
 ## Frontend URLs
 

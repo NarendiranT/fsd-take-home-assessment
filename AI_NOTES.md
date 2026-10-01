@@ -98,3 +98,5 @@ The first version of `run.py` waited for 1024 bytes before it forwarded a respon
 **Two ways to start.** `python3 run.py` for local work. `docker compose up --build` for the same ports behind nginx.
 
 **API docs.** FastAPI publishes Swagger, ReDoc, and the OpenAPI document from the routes. The event stream is `text/event-stream`, so a browser or `curl -N` is the practical way to watch it.
+
+**Observability.** The API writes JSON logs and a Prometheus text page from the standard library. A request log carries the id, status, and duration. A reconcile log carries the meeting count, the conflict count, and the duration. `GET /health` is the liveness check Docker uses. `GET /metrics` stays on the API port. I did not add a metrics client, a tracing vendor, or a log shipper. Those belong once this process is one of several.

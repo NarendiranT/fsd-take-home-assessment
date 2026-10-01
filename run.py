@@ -52,7 +52,8 @@ class Handler(SimpleHTTPRequestHandler):
         self.end_headers()
         try:
             while True:
-                chunk = upstream.read(1024)
+                # read() waits for 1024 bytes; one SSE event is much smaller
+                chunk = upstream.read1(1024)
                 if not chunk:
                     self.wfile.write(b"0\r\n\r\n")
                     break
